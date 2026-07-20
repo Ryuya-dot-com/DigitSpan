@@ -1,0 +1,138 @@
+name: Verify and deploy Digit Span Pages
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      audio_rights_confirmed:
+        description: Confirm this tag matches the exact audio scope approved on 2026-07-20
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: digitspan-pages-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify public release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out release source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Verify allowlist, privacy, links, CSP, manifests, audio, and JavaScript
+        run: node tools/verify-public-release.mjs
+
+      - name: Confirm publication notice is present
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "On 2026-07-20, the study owner explicitly approved public distribution through this project" NOTICE.md
+          grep -Fq 'Japanese digit set `ja-digits-aligned-wav-v3`' NOTICE.md
+          grep -Fq 'US-English digit set `en-us-digits-aligned-wav-v1`' NOTICE.md
+          grep -Fq 'common `beep.wav`' NOTICE.md
+          grep -Fq "It is not a third-party legal warranty" NOTICE.md
+          grep -Fq 'The required manual `audio_rights_confirmed` workflow gate remains in place' NOTICE.md
+
+  package:
+    name: Package approved Pages artifact
+    if: github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/digitspan-v') && inputs.audio_rights_confirmed == true
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Check out approved release tag
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site-only Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./site
+
+  deploy:
+    name: Deploy approved release tag
+    if: github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/digitspan-v')
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy GitHub Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  smoke:
+    name: Smoke-test deployed site
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check entry points, assets, MIME types, and custom 404
+        shell: bash
+        env:
+          SITE_URL: ${{ needs.deploy.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          base_url="${SITE_URL%/}"
+          curl_args=(--fail --silent --show-error --location --retry 12 --retry-delay 5 --retry-all-errors)
+
+          curl "${curl_args[@]}" "$base_url/" >/dev/null
+          curl "${curl_args[@]}" "$base_url/researcher/" >/dev/null
+          curl "${curl_args[@]}" "$base_url/web-forward/" >/dev/null
+          curl "${curl_args[@]}" "$base_url/web-backward/" >/dev/null
+          curl "${curl_args[@]}" "$base_url/web-common/experiment.js" >/dev/null
+          curl "${curl_args[@]}" "$base_url/audio/digits-normalized-v3/0.wav" >/dev/null
+          curl "${curl_args[@]}" "$base_url/audio/digits-en-us-normalized-v1/0.wav" >/dev/null
+          curl "${curl_args[@]}" "$base_url/audio/beep.wav" >/dev/null
+          curl "${curl_args[@]}" "$base_url/RELEASE_MANIFEST.sha256" >/dev/null
+
+          js_type="$(curl --fail --silent --show-error --location --head --retry 12 --retry-delay 5 --retry-all-errors "$base_url/web-common/experiment.js" | tr -d '\r' | awk 'BEGIN{IGNORECASE=1} /^content-type:/{print tolower($0)}' | tail -n 1)"
+          [[ "$js_type" == *"javascript"* ]]
+
+          wav_type="$(curl --fail --silent --show-error --location --head --retry 12 --retry-delay 5 --retry-all-errors "$base_url/audio/digits-normalized-v3/0.wav" | tr -d '\r' | awk 'BEGIN{IGNORECASE=1} /^content-type:/{print tolower($0)}' | tail -n 1)"
+          [[ "$wav_type" =~ content-type:\ audio/(wav|x-wav|wave) ]]
+
+          en_wav_type="$(curl --fail --silent --show-error --location --head --retry 12 --retry-delay 5 --retry-all-errors "$base_url/audio/digits-en-us-normalized-v1/0.wav" | tr -d '\r' | awk 'BEGIN{IGNORECASE=1} /^content-type:/{print tolower($0)}' | tail -n 1)"
+          [[ "$en_wav_type" =~ content-type:\ audio/(wav|x-wav|wave) ]]
+
+          missing_url="$base_url/definitely-missing-${GITHUB_RUN_ID}/"
+          status="$(curl --silent --show-error --location --output "$RUNNER_TEMP/digitspan-404.html" --write-out '%{http_code}' "$missing_url")"
+          [[ "$status" == "404" ]]
+          grep -Eiq "not found|見つかりません|404" "$RUNNER_TEMP/digitspan-404.html"

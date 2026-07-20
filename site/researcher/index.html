@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; media-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'">
+  <title data-site-i18n="researcher.documentTitle">Digit Span 研究者用ページ</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B4A8B'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34' fill='white'%3EDS%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body data-site-page="researcher">
+  <header class="site-toolbar">
+    <a class="brand" href="../" data-site-i18n="common.brand">Digit Span</a>
+    <div class="language-switcher" role="group" aria-label="Language / 表示言語">
+      <button type="button" data-site-language="ja" lang="ja">日本語</button>
+      <button type="button" data-site-language="en" lang="en">English</button>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero">
+      <p class="eyebrow" data-site-i18n="researcher.eyebrow">研究者用・公開ユーティリティ</p>
+      <h1 data-site-i18n="researcher.title">参加者リンクの作成</h1>
+      <p class="lead" data-site-i18n="researcher.lead">参加者画面の開始言語と読み上げ音声を個別に選び、確定済みのプロトコル・課題・タイミングを固定したリンクを作成します。</p>
+    </section>
+
+    <section class="warning-card" role="note" aria-labelledby="public-warning-title">
+      <h2 id="public-warning-title" data-site-i18n="researcher.warningTitle">このページは認証された管理画面ではありません</h2>
+      <p data-site-i18n="researcher.warning">GitHub Pages上では誰でも閲覧できます。秘密、パスワード、参加者ID、回答、個別の研究情報を入力・掲載しないでください。リンクは署名付きでも一回限りでもありません。</p>
+    </section>
+
+    <section class="card" aria-labelledby="link-title">
+      <h2 id="link-title" data-site-i18n="researcher.linkTitle">固定参加者リンク</h2>
+      <label for="start-language" data-site-i18n="researcher.startLanguage">参加者画面の開始言語</label>
+      <select id="start-language">
+        <option value="ja">日本語</option>
+        <option value="en">English</option>
+      </select>
+      <label for="spoken-language" data-site-i18n="researcher.spokenLanguage">数字の読み上げ音声</label>
+      <select id="spoken-language" aria-describedby="spoken-language-help">
+        <option value="ja">日本語</option>
+        <option value="en">English (US)</option>
+      </select>
+      <p id="spoken-language-help" class="small-note" data-site-i18n="researcher.spokenHelp">音声条件は参加者側で変更できず、順唱から逆唱にも引き継がれます。</p>
+      <label for="participant-link" data-site-i18n="researcher.linkLabel">参加者用URL（匿名IDは含みません）</label>
+      <div class="copy-row">
+        <input id="participant-link" type="text" readonly spellcheck="false">
+        <button id="copy-link" class="button secondary" type="button" data-site-i18n="researcher.copy">URLをコピー</button>
+      </div>
+      <div class="actions">
+        <a id="open-participant-link" class="button primary" href="../web-forward/" target="_blank" rel="noopener noreferrer" data-site-i18n="researcher.open">参加者画面を別タブで開く</a>
+      </div>
+      <p id="copy-status" class="status" role="status" aria-live="polite"></p>
+      <p class="small-note" data-site-i18n="researcher.idReminder">匿名IDはリンクへ追加せず、課題画面で本人に入力してもらいます。</p>
+    </section>
+
+    <section class="card" aria-labelledby="locked-title">
+      <h2 id="locked-title" data-site-i18n="researcher.lockedTitle">変更できない研究仕様</h2>
+      <p data-site-i18n="researcher.lockedLead">音声言語以外の試行数、刺激列、提示間隔、回答期限、採点、順唱→逆唱の順序は、このページから変更できません。</p>
+      <dl class="version-grid">
+        <div><dt>Release</dt><dd data-site-version="release"></dd></div>
+        <div><dt>Protocol</dt><dd data-site-version="protocol"></dd></div>
+        <div><dt>Forward task</dt><dd data-site-version="forward"></dd></div>
+        <div><dt>Backward task</dt><dd data-site-version="backward"></dd></div>
+        <div><dt data-site-i18n="researcher.audioVersion">選択中の音声セット</dt><dd data-site-version="audio"></dd></div>
+        <div><dt>Timing</dt><dd data-site-version="timing"></dd></div>
+      </dl>
+    </section>
+
+    <section class="card muted-card" aria-labelledby="operations-title">
+      <h2 id="operations-title" data-site-i18n="researcher.operationsTitle">実施時の責任範囲</h2>
+      <ul>
+        <li data-site-i18n="researcher.operationConsent">研究説明・同意・撤回・連絡先は、承認済みの研究手続きで別途管理します。</li>
+        <li data-site-i18n="researcher.operationCsv">順唱と逆唱のCSVをそれぞれ保存し、承認済みの制限領域へ移動します。Pagesは結果を受信しません。</li>
+        <li data-site-i18n="researcher.operationExposure">公開静的サイトでは刺激列と音声を隠せないため、事前曝露は運用上管理します。</li>
+        <li data-site-i18n="researcher.operationAudioRights">2026-07-20に、固定音声 ja-digits-aligned-wav-v3、en-us-digits-aligned-wav-v1、beep.wav の公開が承認されました。公開時はタグ内容を照合し、手動確認ゲートを実行します。このプロジェクト承認は第三者の法的保証ではありません。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="../assets/site.js"></script>
+</body>
+</html>

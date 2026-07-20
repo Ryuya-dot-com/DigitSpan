@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; media-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'">
+  <title data-i18n="forward.documentTitle">数字記憶テスト（順唱）</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B4A8B'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34' fill='white'%3EDS%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="app-shell" class="app-shell">
+    <div class="utility-bar">
+      <span id="test-mode-badge" class="test-badge" hidden>TEST MODE</span>
+      <div class="utility-actions">
+        <div id="language-switcher" class="language-switcher" role="group" aria-labelledby="language-label">
+          <span id="language-label" data-i18n="language.label">表示言語</span>
+          <button id="language-ja" class="language-button" type="button" data-language="ja" lang="ja">日本語</button>
+          <button id="language-en" class="language-button" type="button" data-language="en" lang="en">English</button>
+        </div>
+        <button id="fullscreen-toggle" class="ghost" type="button" data-i18n="common.fullscreenEnter">全画面 (F)</button>
+      </div>
+    </div>
+
+    <div id="fatal-error" class="fatal-error" role="alert" hidden></div>
+
+    <section id="screen-intro" aria-labelledby="intro-title">
+      <header class="screen-header">
+        <h1 id="intro-title" data-i18n="forward.title">数字記憶テスト（順唱）</h1>
+        <p class="lead" data-i18n="forward.lead">研究者が指定した日本語または英語で読み上げられる数字を、聞こえた順番のまま入力する課題です。</p>
+        <p id="spoken-language-note" class="spoken-language-note">数字の読み上げ音声は研究者が指定した言語に固定されています。</p>
+      </header>
+
+      <div class="card soft">
+        <h2 data-i18n="common.method">実施方法</h2>
+        <ul>
+          <li data-i18n="forward.instruction1">数字を1桁ずつ読み上げます。画面が入力可能になるまでキーを押さないでください。</li>
+          <li data-i18n="forward.instruction2">最後のビープ音のあと、聞こえた数字を同じ順番で入力します。</li>
+          <li data-i18n="forward.instruction3">回答時間は桁数に応じて8～20秒です。時間になると入力済みの内容が自動送信されます。</li>
+          <li data-i18n="forward.instruction4">メモ、外部機器、ブラウザの戻る・再読み込みは使用しないでください。</li>
+          <li data-i18n="forward.instruction5">練習3試行のあと、本試行21試行（3～9桁×各3試行）を行います。</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <label for="participant-id" data-i18n="common.participantId">参加者ID</label>
+        <input id="participant-id" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="例：PVLT-1A2B3C4D5E6F" data-i18n-placeholder="common.participantPlaceholder" aria-describedby="participant-id-help">
+        <p id="participant-id-help" class="help"></p>
+        <p class="privacy-note" data-i18n="common.privacy">氏名・学籍番号・メールアドレスは入力しないでください。回答と参加者IDはサーバーへ送信されず、この端末にCSVとして保存されます。</p>
+
+        <div class="actions">
+          <button id="audio-check" class="secondary" type="button" data-i18n="common.audioCheck">音声を確認</button>
+          <button id="audio-confirm" class="secondary" type="button" hidden disabled data-i18n="common.audioConfirm">数字とビープが聞こえました</button>
+          <button id="intro-start" class="primary" type="button" disabled data-i18n="common.toPractice">練習へ進む</button>
+        </div>
+        <p id="audio-status" class="status-line" role="status" aria-live="polite">開始前に音声を確認してください。</p>
+      </div>
+    </section>
+
+    <section id="screen-practice" aria-labelledby="practice-title" hidden aria-hidden="true">
+      <header class="screen-header">
+        <p class="eyebrow" data-i18n="common.practiceEyebrow">練習</p>
+        <h1 id="practice-title" data-i18n="common.practiceTitle">練習</h1>
+        <p class="lead" data-i18n="forward.practiceLead">3桁の練習を3試行行います。練習では送信後に正答を確認できます。</p>
+      </header>
+      <div class="card soft">
+        <p id="practice-progress" class="progress">練習 0 / 3</p>
+        <p id="practice-status" class="status-line" role="status" aria-live="polite">準備ができたら開始してください。</p>
+        <div class="actions">
+          <button id="practice-start" class="primary" type="button" data-i18n="common.practiceStart">練習を開始</button>
+        </div>
+      </div>
+      <div class="card">
+        <label for="practice-input" data-i18n="forward.inputLabel">回答</label>
+        <div class="input-row">
+          <input id="practice-input" type="text" autocomplete="off" inputmode="numeric" pattern="[0-9]*" placeholder="数字を入力" data-i18n-placeholder="forward.inputPlaceholder" disabled>
+          <button id="practice-submit" class="primary" type="button" disabled data-i18n="common.submit">送信 (Enter)</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-main" aria-labelledby="main-title" hidden aria-hidden="true">
+      <header class="screen-header">
+        <p class="eyebrow" data-i18n="common.mainEyebrow">本試行</p>
+        <h1 id="main-title" data-i18n="common.mainTitle">本試行</h1>
+        <p class="lead" data-i18n="forward.mainLead">3～9桁を各3試行、合計21試行行います。本試行中は正誤を表示しません。</p>
+      </header>
+      <div class="card soft">
+        <p id="main-progress" class="progress">本試行 0 / 21</p>
+        <p id="main-status" class="status-line" role="status" aria-live="polite">準備ができたら開始してください。</p>
+        <div class="actions">
+          <button id="main-start" class="primary" type="button" data-i18n="common.mainStart">本試行を開始</button>
+        </div>
+      </div>
+      <div class="card">
+        <label for="main-input" data-i18n="forward.inputLabel">回答</label>
+        <div class="input-row">
+          <input id="main-input" type="text" autocomplete="off" inputmode="numeric" pattern="[0-9]*" placeholder="数字を入力" data-i18n-placeholder="forward.inputPlaceholder" disabled>
+          <button id="main-submit" class="primary" type="button" disabled data-i18n="common.submit">送信 (Enter)</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-done" aria-labelledby="done-title" hidden aria-hidden="true">
+      <header class="screen-header">
+        <p class="eyebrow" data-i18n="common.doneEyebrow">完了</p>
+        <h1 id="done-title" data-i18n="common.doneTitle">終了しました</h1>
+        <p class="lead" data-i18n="common.doneThanks">ご協力ありがとうございました。</p>
+      </header>
+      <div class="card soft">
+        <p id="completion-summary"></p>
+        <div class="actions">
+          <button id="download-results" class="primary" type="button" disabled data-i18n="common.download">結果CSVを保存</button>
+          <a id="next-mode" class="button-link primary disabled" aria-disabled="true" data-i18n="common.nextBackward">逆唱へ進む</a>
+          <button id="restart" class="secondary" type="button" data-i18n="common.restart">別の参加者で開始</button>
+        </div>
+        <p id="download-status" class="download-status" role="status" aria-live="polite"></p>
+        <p id="next-mode-help" class="help" data-i18n="common.nextBackwardHelp">順唱の完了CSVを保存すると、逆唱へのリンクが有効になります。</p>
+      </div>
+    </section>
+
+    <footer class="footer"><span data-i18n="common.protocol">Protocol:</span> <span id="protocol-version"></span></footer>
+  </main>
+
+  <script src="app.js"></script>
+  <script src="../web-common/i18n.js"></script>
+  <script src="../web-common/experiment.js"></script>
+</body>
+</html>
